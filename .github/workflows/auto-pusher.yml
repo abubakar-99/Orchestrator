@@ -24,7 +24,7 @@ jobs:
       - name: Calculate today's project day
         id: day
         run: |
-          START_DATE="2026-06-15"
+          START_DATE="2026-06-14"
           TODAY=$(date +%Y-%m-%d)
           python3 -c "
           from datetime import date
