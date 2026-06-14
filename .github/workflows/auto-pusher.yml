@@ -1,0 +1,44 @@
+name: Daily Project Pusher
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # 9 AM Pakistan time (PKT = UTC+5)
+  workflow_dispatch:       # allows manual trigger too
+
+jobs:
+  push-daily-project:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout orchestrator
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Calculate today's project day
+        id: day
+        run: |
+          START_DATE="2026-06-15"
+          TODAY=$(date +%Y-%m-%d)
+          python3 -c "
+          from datetime import date
+          start = date.fromisoformat('$START_DATE')
+          today = date.fromisoformat('$TODAY')
+          day = (today - start).days + 1
+          print(f'day={day}')
+          " >> $GITHUB_OUTPUT
+
+      - name: Push today's project
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          DAY: ${{ steps.day.outputs.day }}
+        run: python3 push_project.py
+
+      - name: Log completion
+        run: echo "✅ Day ${{ steps.day.outputs.day }} pushed successfully"
